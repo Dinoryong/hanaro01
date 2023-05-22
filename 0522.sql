@@ -68,5 +68,46 @@ SELECT DEPTNO, JOB, COUNT(*), MAX(SAL), SUM(SAL), AVG(SAL) FROM EMP
 --전체는 나오지 않음
 SELECT DEPTNO, JOB, COUNT(*), MAX(SAL), SUM(SAL), AVG(SAL) FROM EMP
     GROUP BY DEPTNO, ROLLUP(JOB);
+--1) A + B = 부서번호 + 직책 으로 GROUP BY
+--2) A = 직책 으로 GROUP BY
+--전체는 나오지 않음
+SELECT DEPTNO, JOB, COUNT(*), MAX(SAL), SUM(SAL), AVG(SAL) FROM EMP
+    GROUP BY JOB, ROLLUP(DEPTNO);
 
+
+
+
+--LISTAGG:
+SELECT NAME FROM EMP;
+SELECT DEPTNO, ENAME FROM EMP GROUP BY DEPTNO, ENAME ORDER BY DEPTNO ASC, ENAME ASC;
+--부서 별로 사원 이름을 알파벳 순서대로 나열한 다음 이름과 이름 사이에 ', ' 로 연결시켜 출력
+SELECT DEPTNO,
+    LISTAGG(ENAME, ', ')
+    WITHIN GROUP(ORDER BY ENAME ASC) AS ENAME
+    FROM EMP
+    GROUP BY DEPTNO;
+--부서 별로 사원 이름을 급여가 높은 순서대로 나열한 다음 이름과 이름 사이에 ', ' 로 연결시켜 출력
+SELECT DEPTNO,
+    LISTAGG(ENAME, ', ')
+    WITHIN GROUP(ORDER BY SAL DESC) AS ENAME
+    FROM EMP
+    GROUP BY DEPTNO;
+--PIVOT : 행을 열로 바꾼다
+SELECT DEPTNO, JOB, MAX(SAL) FROM EMP GROUP BY DEPTNO, JOB ORDER BY DEPTNO ASC, JOB ASC;
+--부서 번호를 행에서 열로 바꾼다
+SELECT * FROM (SELECT DEPTNO, JOB, SAL FROM EMP)
+    PIVOT(MAX(SAL) FOR DEPTNO IN (10, 20, 30))
+    ORDER BY JOB;
+--직책을 행에서 열로 바꾼다
+SELECT * FROM (SELECT DEPTNO, JOB, SAL FROM EMP)
+    PIVOT(MAX(SAL) FOR JOB IN ('ANALYST' AS ANALYST,
+                                'CLERK' AS CLERK,
+                                'MANAGER' AS MANAGER,
+                                'PRESIDENT' AS PRESIDENT,
+                                'SALESMAN' AS SALESMAN)) 
+    ORDER BY DEPTNO;
+--DECODE 문으로 PIVOT 테이블 만들어 보자
+
+
+--PIVOT 테이블을 다시 UNPIVOT
 
