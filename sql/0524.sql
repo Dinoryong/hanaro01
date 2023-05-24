@@ -251,6 +251,76 @@ UPDATE TB_UNQ
     SET LOG_ID = 'TEST_ID_3'
     WHERE LOG_PW = 'TEST_PW_3';
 SELECT * FROM TB_UNQ;
-    
-    
-    
+--기본키 = PRIMARY KEY = NOT NULL + UNIQUE
+CREATE TABLE TB_PK(
+    LOG_ID VARCHAR2(15) CONSTRAINT TBPK_LOGID_PK PRIMARY KEY,
+    LOG_PW VARCHAR2(15) CONSTRAINT TBPK_LOGPW_NN NOT NULL,
+    CP VARCHAR2(15)
+);
+--데이터 추가
+INSERT INTO TB_PK (LOG_ID, LOG_PW, CP)
+    VALUES ('TEST_ID_1', 'TEST_PW_1', '010-1234-5678');
+SELECT * FROM TB_PK;
+--한번 더 실행 = 중복 데이터 입력 안됨 => ID는 PK = 중복 불가 + NULL 값 불가
+INSERT INTO TB_PK (LOG_ID, LOG_PW, CP)
+    VALUES ('TEST_ID_1', 'TEST_PW_1', '010-1234-5678');
+--PW는 NULL 값 불가이기 대문에 중복 데이터는 입력 가능
+INSERT INTO TB_PK (LOG_ID, LOG_PW, CP)
+    VALUES ('TEST_ID_2', 'TEST_PW_1', '010-1234-5678');
+SELECT * FROM TB_PK;
+--NULL 값 추가 = NULL 값 입력 안됨 => ID는 FK = 중복 불가 + NULL 값 불가
+INSERT INTO TB_PK (LOG_ID, LOG_PW, CP)
+    VALUES (NULL, 'TEST_PW_1', '010-1234-5678');
+--외래키 = foreign key = 참조키 = 다른 테이블의 기본키를 참조
+--EMP, DEPT테이블이 가지고 있는 제약조건 확인
+SELECT * FROM USER_CONSTRAINTS WHERE TABLE_NAME IN ('EMP', 'DEPT');
+--EMP ㅌ테이블에 DEPT 테이블에 없는 부서 번호를 입력
+SELECT * FROM EMP;
+SELECT * FROM DEPT;
+--참조할 수 있는 값이 없기 때문에 입력 안됨 = 부서 테이블에 90번 부서 데이터가 없음
+--부서 테이블에 90번 데이터 먼저 입력한 다음에 사원 정보 입력해야 정상적으로 추가 가능
+INSERT INTO EMP
+    VALUES (9999, 'QUEEN', 'VICE', 7839, '2023-05-23', 5000, NULL, 90);
+--테이블 생성
+CREATE TABLE DEPT_FK (
+    DEPTNO NUMBER(2) CONSTRAINT DEPTFK_DEPTNO_FK PRIMARY KEY,
+    DNAME VARCHAR2(15)
+);
+CREATE TABLE EMP_FK(
+    EMPNO NUMBER(4) CONSTRAINT EMPFK_EMPNO_PK PRIMARY KEY,
+    ENAME VARCHAR2(10),
+    DEPTNO NUMBER(2) CONSTRAINT EMPFK_DEPTNO_FK REFERENCES DEPT_FK(DEPTNO)
+);
+--사원 추가 => 참조할 수 있는 값이 없기 때문에 추가 불가
+--참조할 수 있는 값을 먼저 만들어야 함 = 부서 추가
+INSERT INTO EMP_FK
+    VALUES(9999, 'QUEEN', 10);
+SELECT * FROM DEPT_FK;
+--부서 추가
+INSERT INTO DEPT_FK
+    VALUES (10, 'DA');
+SELECT * FROM DEPT_FK;
+--다시 사원 추가 = 참조할 수 있는 값이 있기 때문에 추가 가능
+INSERT INTO EMP_FK
+    VALUES(9999, 'QUEEN', 10);
+--외래키가 있을 때 데이터 입력 순서
+--1) 외래키 생성
+--2) 참조할 데이터 입력(예, 부서 10번)
+--3) 데이터 입력 가능 (예, 사원 QUEEN)
+--
+--부서 삭제
+SELECT * FROM DEPT_FK;
+SELECT * FROM EMP_FK;
+--10번 부서를 참조하고 있는 직원이 있기 때문에 삭제 불가
+--사원을 먼저 삭제
+DELETE DEPT_FK WHERE DEPTNO = 10;
+--사원 삭제
+DELETE EMP_FK WHERE EMPNO = 9999;
+SELECT * FROM EMP_FK;
+--다시 부서 삭제 => 더 이상 10번 부서번호를 참조학 있는 사원이 없기 때문에
+DELETE DEPT_FK WHERE DEPTNO = 10;
+SELECT * FROM DEPT_FK;
+--외래키가 있을 때 데이터 삭제 순서
+--1) 참조하고 있는 데이터 = 10번 부서 번호를 참조하고 있는 직원 데이터 삭제
+--2) 부서 데이터 삭제
+--
