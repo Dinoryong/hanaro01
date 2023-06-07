@@ -18,5 +18,5 @@ print("hello world")
 # python -m pip install cx_Oracle -- upgrade
 import cx_Oracle as oci
 # 디비 연결
-# "ID/PW@localhost:1521"
-con = oci.connect("scott/tiger@localhost:1521")
+# "ID/PW@localhost:1521/orcl"
+con = oci.connect("scott/tiger@localhost:1521/orcl")
